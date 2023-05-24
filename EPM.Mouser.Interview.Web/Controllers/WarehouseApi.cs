@@ -71,7 +71,7 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
 
-        [HttpGet("order")]
+        [HttpPut("order")]
         public async Task<JsonResult> OrderItem([FromBody] UpdateQuantityRequest request)
         {
             UpdateResponse response = new();

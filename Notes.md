@@ -26,4 +26,4 @@ Added null check for `AddNewProduct`, outside of requirements but it is a likely
 ## Questions
 - `AddNewProduct` name uniqueness does not specify any case sensitivity, should it?
 - Should we be using models for the API? I.e., ProductModel. Product has unused fields for this use case.
-- The order endpoint seems to have been incorectly specified, should it be changed?
+- The order endpoint seems to have been incorectly specified, should it be changed? (It has been changed to PUT to test it via swagger)
