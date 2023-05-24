@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EPM.Mouser.Interview.Web.Controllers
 {
-    public class WarehouseApi : Controller
+    [ApiController]
+    [Route("api/warehouse")]
+    public class WarehouseApi : ControllerBase
     {
         private readonly WarehouseService _warehouseService;
 
@@ -20,23 +22,23 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *  Url: api/warehouse/id
          *  This action should return a single product for an Id
          */
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<JsonResult> GetProduct(long id)
         {
             // Could handle this a couple of ways.
             if(id < 0)
             {
-                return Json(new NotFoundResult());
+                return new JsonResult(null);
             }
 
             var result = await _warehouseService.GetProduct(id);
 
             if(result is null)
             {
-                return Json(new NotFoundResult());
+                return new JsonResult(null);
             }
 
-            return Json(result);
+            return new JsonResult(result);
         }
 
         /*
@@ -45,11 +47,11 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *  This action should return a collection of products in stock
          *  In stock means In Stock Quantity is greater than zero and In Stock Quantity is greater than the Reserved Quantity
          */
-        [HttpGet]
-        public JsonResult GetPublicInStockProducts()
+        [HttpGet("")]
+        public async Task<JsonResult> GetPublicInStockProducts()
         {
-            var result = _warehouseService.GetInStock();
-            return Json(result);
+            var result = await _warehouseService.GetInStock();
+            return new JsonResult(result);
         }
 
 
@@ -70,7 +72,8 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.QuantityInvalid when: A negative number was requested
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
-        
+
+        [HttpGet("order")]
         public async Task<JsonResult> OrderItem([FromBody] UpdateQuantityRequest request)
         {
             UpdateResponse response = new();
@@ -79,7 +82,7 @@ namespace EPM.Mouser.Interview.Web.Controllers
             {
                 response.Success = false;
                 response.ErrorReason = ErrorReason.QuantityInvalid;
-                return Json(response);
+                return new JsonResult(response);
             }
             
             var product = await _warehouseService.GetProduct(request.Id);
@@ -88,7 +91,7 @@ namespace EPM.Mouser.Interview.Web.Controllers
             {
                 response.Success = false;
                 response.ErrorReason = ErrorReason.InvalidRequest;
-                return Json(response);
+                return new JsonResult(response);
             }
 
             var itemOrdered = await _warehouseService.OrderItem(product, request.Quantity);
@@ -97,11 +100,11 @@ namespace EPM.Mouser.Interview.Web.Controllers
             {
                 response.Success = false;
                 response.ErrorReason = ErrorReason.QuantityInvalid;
-                return Json(response);
+                return new JsonResult(response);
             }
 
             response.Success = true;
-            return Json(response);
+            return new JsonResult(response);
         }
 
         /*
@@ -123,9 +126,10 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.QuantityInvalid when: A negative number was requested
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
+        [HttpGet("ship")]
         public JsonResult ShipItem()
         {
-            return Json(null);
+            return new JsonResult(null);
         }
 
         /*
@@ -145,9 +149,10 @@ namespace EPM.Mouser.Interview.Web.Controllers
         *     - ErrorReason.QuantityInvalid when: A negative number was requested
         *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
+        [HttpGet("restock")]
         public JsonResult RestockItem()
         {
-            return Json(null);
+            return new JsonResult(null);
         }
 
         /*
@@ -178,9 +183,10 @@ namespace EPM.Mouser.Interview.Web.Controllers
         *     - ErrorReason.QuantityInvalid when: A negative number was requested for the In Stock Quantity
         *     - ErrorReason.InvalidRequest when: A blank or empty name is requested
         */
+        [HttpGet("add")]
         public JsonResult AddNewProduct()
         {
-            return Json(null);
+            return new JsonResult(null);
         }
     }
 }
