@@ -1,6 +1,4 @@
-﻿using EPM.Mouser.Interview.Data;
-using EPM.Mouser.Interview.Models;
-using EPM.Mouser.Interview.Web.Pages;
+﻿using EPM.Mouser.Interview.Models;
 using EPM.Mouser.Interview.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -126,10 +124,38 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.QuantityInvalid when: A negative number was requested
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
-        [HttpGet("ship")]
-        public JsonResult ShipItem()
+        [HttpPut("ship")]
+        public async Task<JsonResult> ShipItem([FromBody] UpdateQuantityRequest request)
         {
-            return new JsonResult(null);
+            UpdateResponse response = new();
+
+            if (request.Quantity < 0)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return new JsonResult(response);
+            }
+
+            var product = await _warehouseService.GetProduct(request.Id);
+
+            if (product is null)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.InvalidRequest;
+                return new JsonResult(response);
+            }
+
+            var itemOrdered = await _warehouseService.ShipItem(product, request.Quantity);
+
+            if (!itemOrdered)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return new JsonResult(response);
+            }
+
+            response.Success = true;
+            return new JsonResult(response);
         }
 
         /*
@@ -149,10 +175,31 @@ namespace EPM.Mouser.Interview.Web.Controllers
         *     - ErrorReason.QuantityInvalid when: A negative number was requested
         *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
-        [HttpGet("restock")]
-        public JsonResult RestockItem()
+        [HttpPut("restock")]
+        public async Task<JsonResult> RestockItem([FromBody] UpdateQuantityRequest request)
         {
-            return new JsonResult(null);
+            UpdateResponse response = new();
+
+            if (request.Quantity < 0)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return new JsonResult(response);
+            }
+
+            var product = await _warehouseService.GetProduct(request.Id);
+
+            if (product is null)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.InvalidRequest;
+                return new JsonResult(response);
+            }
+
+            await _warehouseService.RestockItem(product, request.Quantity);
+
+            response.Success = true;
+            return new JsonResult(response);
         }
 
         /*
@@ -183,10 +230,35 @@ namespace EPM.Mouser.Interview.Web.Controllers
         *     - ErrorReason.QuantityInvalid when: A negative number was requested for the In Stock Quantity
         *     - ErrorReason.InvalidRequest when: A blank or empty name is requested
         */
-        [HttpGet("add")]
-        public JsonResult AddNewProduct()
+        [HttpPost("add")]
+        public async Task<JsonResult> AddNewProduct([FromBody] Product product)
         {
-            return new JsonResult(null);
+            CreateResponse<Product> response = new();
+
+            if(product is null)
+            {
+                response.Success=false;
+                response.ErrorReason= ErrorReason.InvalidRequest;
+                return new JsonResult(response);
+            }
+
+            if (product.InStockQuantity < 0)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return new JsonResult(response);
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Name))
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.InvalidRequest;
+                return new JsonResult(response);
+            }
+
+            response.Model = await _warehouseService.InsertProduct(product);
+            response.Success = true;
+            return new JsonResult(response);
         }
     }
 }

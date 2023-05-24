@@ -17,6 +17,13 @@ I am leaving it as GET for now as per the assumption that I cannot change the en
 ---
 I am not considering any concurrency here.
 For example in the `OrderItem` code, the product is fetched from the db, evaluated, updated, then re-committed with no concurrency checks.
+---
+Added null check for `AddNewProduct`, outside of requirements but it is a likely case. Would probably include it, but raise it to see if there was a more appropriate response to give.
 
 ## Assumptions
 - The WarehouseApi endpoints cannot be modified to a different response type.
+
+## Questions
+- `AddNewProduct` name uniqueness does not specify any case sensitivity, should it?
+- Should we be using models for the API? I.e., ProductModel. Product has unused fields for this use case.
+- The order endpoint seems to have been incorectly specified, should it be changed?

@@ -93,17 +93,78 @@ namespace EPM.Mouser.Interview.Web.Services
             return true;
         }
 
-        public async Task<Product> InsertProduct(Product model)
+        /// <summary>
+        /// Attempts to ship an item.
+        /// <para>
+        /// If this takes the stock below 0, returns false.
+        /// A false response means nothing was changed.
+        /// </para>
+        /// </summary>
+        public async Task<bool> ShipItem(Product product, int quantity)
         {
+            if(product.InStockQuantity - quantity < 0)
+            {
+                return false;
+            }
+
+            product.InStockQuantity -= quantity;
+            product.ReservedQuantity -= quantity;
+            if(product.ReservedQuantity < 0)
+            {
+
+                product.ReservedQuantity = 0;
+            }
+
+            await UpdateProductQuantities(product);
+            return true;
+        }
+
+        public async Task RestockItem(Product product, int quantity)
+        {
+            if(quantity < 0)
+            {
+                throw new Exception($"Argument cannot be less than 0");
+            }
+
+            product.InStockQuantity += quantity;
+            await UpdateProductQuantities(product);
+        }
+
+        public async Task<Product> InsertProduct(Product product)
+        {
+            if(product.InStockQuantity < 0)
+            {
+                throw new Exception($"Argument cannot be less than 0");
+            }
+
+            product.Name = await ApplyNameConstraints(product.Name);
+            product.ReservedQuantity = 0;
+
             try
             {
-                return await _repository.Insert(model);
+                return await _repository.Insert(product);
             }
             catch (Exception)
             {
                 
                 throw;
             }
+        }
+
+        private async Task<string> ApplyNameConstraints(string name)
+        {
+            name = name.Trim();
+
+            // I would prefer to return only the count to save resources.
+            var similar = await QueryProducts(p => p.Name.StartsWith(name));
+            var count = similar.Count();
+
+            if(count == 0)
+            {
+                return name;
+            }
+
+            return $"{name}({count})";
         }
     }
 
