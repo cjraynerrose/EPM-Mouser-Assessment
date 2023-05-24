@@ -1,4 +1,5 @@
 ﻿using EPM.Mouser.Interview.Data;
+using EPM.Mouser.Interview.Models;
 using EPM.Mouser.Interview.Web.Pages;
 using EPM.Mouser.Interview.Web.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -70,9 +71,37 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
         
-        public JsonResult OrderItem()
+        public async Task<JsonResult> OrderItem([FromBody] UpdateQuantityRequest request)
         {
-            return Json(null);
+            UpdateResponse response = new();
+
+            if(request.Quantity < 0)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return Json(response);
+            }
+            
+            var product = await _warehouseService.GetProduct(request.Id);
+            
+            if(product is null)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.InvalidRequest;
+                return Json(response);
+            }
+
+            var itemOrdered = await _warehouseService.OrderItem(product, request.Quantity);
+
+            if (!itemOrdered)
+            {
+                response.Success = false;
+                response.ErrorReason = ErrorReason.QuantityInvalid;
+                return Json(response);
+            }
+
+            response.Success = true;
+            return Json(response);
         }
 
         /*

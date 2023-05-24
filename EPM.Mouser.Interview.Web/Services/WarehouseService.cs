@@ -73,6 +73,26 @@ namespace EPM.Mouser.Interview.Web.Services
             }
         }
 
+        /// <summary>
+        /// Attempts to order an item.
+        /// <para>
+        /// If this takes the reserve above the stock, return false.
+        /// A false response means nothing was changed.
+        /// </para>
+        /// </summary>
+        public async Task<bool> OrderItem(Product product, int quantity)
+        {
+            if(product.InStockQuantity < product.ReservedQuantity + quantity)
+            {
+                return false;
+            }
+
+            product.ReservedQuantity += quantity;
+            await UpdateProductQuantities(product);
+
+            return true;
+        }
+
         public async Task<Product> InsertProduct(Product model)
         {
             try
