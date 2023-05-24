@@ -118,6 +118,21 @@ namespace CJRR.Mouser.Interview.Tests
             Assert.That(insertedProduct.Id, Is.GreaterThan(0));
         }
 
+        [Test]
+        public async Task UpdateReserved_MoreThanStock_NoExceptionsThrown()
+        {
+            // Arrange
+            var product = new Product { Id = 1, Name = "Test Product", InStockQuantity = 10, ReservedQuantity = 10 };
+            product = await _warehouseService.InsertProduct(product);
+
+            // Act
+            product.ReservedQuantity = 11;
+            await _warehouseService.UpdateProductQuantities(product);
+
+            // Assert
+            var result = await _warehouseRepository.Get(product.Id);
+            Assert.That(result.InStockQuantity, Is.LessThan(result.ReservedQuantity));
+        }
 
     }
 }

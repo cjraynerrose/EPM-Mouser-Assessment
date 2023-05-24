@@ -18,7 +18,7 @@ namespace EPM.Mouser.Interview.Web.Services
             {
                 return await _repository.Get(id);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
                 throw;
@@ -31,7 +31,7 @@ namespace EPM.Mouser.Interview.Web.Services
             {
                 return await _repository.List();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
                 throw;
@@ -44,11 +44,20 @@ namespace EPM.Mouser.Interview.Web.Services
             {
                 return await _repository.Query(query);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
                 throw;
             }
+        }
+
+        public async Task<List<Product>> GetInStock()
+        {
+            Func<Product, bool> query = p => 
+                p.InStockQuantity > 0
+                && p.InStockQuantity > p.ReservedQuantity;
+
+            return await QueryProducts(query);
         }
 
         public async Task UpdateProductQuantities(Product model)
@@ -57,7 +66,7 @@ namespace EPM.Mouser.Interview.Web.Services
             {
                 await _repository.UpdateQuantities(model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
                 throw;
@@ -70,7 +79,7 @@ namespace EPM.Mouser.Interview.Web.Services
             {
                 return await _repository.Insert(model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
                 throw;

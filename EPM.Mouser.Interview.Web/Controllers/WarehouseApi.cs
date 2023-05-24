@@ -1,11 +1,18 @@
 ﻿using EPM.Mouser.Interview.Data;
 using EPM.Mouser.Interview.Web.Pages;
+using EPM.Mouser.Interview.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EPM.Mouser.Interview.Web.Controllers
 {
     public class WarehouseApi : Controller
     {
+        private readonly WarehouseService _warehouseService;
+
+        public WarehouseApi(WarehouseService warehouseService)
+        {
+            _warehouseService = warehouseService;
+        }
 
         /*
          *  Action: GET
@@ -13,9 +20,22 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *  This action should return a single product for an Id
          */
         [HttpGet]
-        public JsonResult GetProduct(long id)
+        public async Task<JsonResult> GetProduct(long id)
         {
-            return Json(null);
+            // Could handle this a couple of ways.
+            if(id < 0)
+            {
+                return Json(new NotFoundResult());
+            }
+
+            var result = await _warehouseService.GetProduct(id);
+
+            if(result is null)
+            {
+                return Json(new NotFoundResult());
+            }
+
+            return Json(result);
         }
 
         /*
@@ -27,7 +47,8 @@ namespace EPM.Mouser.Interview.Web.Controllers
         [HttpGet]
         public JsonResult GetPublicInStockProducts()
         {
-            return Json(null);
+            var result = _warehouseService.GetInStock();
+            return Json(result);
         }
 
 
@@ -48,6 +69,7 @@ namespace EPM.Mouser.Interview.Web.Controllers
          *     - ErrorReason.QuantityInvalid when: A negative number was requested
          *     - ErrorReason.InvalidRequest when: A product for the id does not exist
         */
+        
         public JsonResult OrderItem()
         {
             return Json(null);
